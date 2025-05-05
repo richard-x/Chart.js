@@ -1,34 +1,34 @@
-name: Build Chart.js
+name: Build Chart.js and generate minified file
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:  # 手动触发构建
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout source
+        uses: actions/checkout@v2
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: '14'
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
 
-    - name: Install dependencies
-      run: npm install
+      - name: Install dependencies
+        run: npm ci
 
-    - name: Build Chart.js
-      run: npm run build
+      - name: Build Chart.js
+        run: npm run build
 
-    - name: Upload chart.min.js artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: chart-min-js
-        path: dist/chart.min.js
+      - name: Minify chart.umd.js
+        run: |
+          npm install -g terser
+          terser dist/chart.umd.js -o dist/chart.umd.min.js -c -m
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: chartjs-dist
+          path: dist/
